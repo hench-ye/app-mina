@@ -72,6 +72,13 @@ jobs:
 
     container:
       image: ghcr.io/ledgerhq/speculos:latest
+      ports:
+        - 1234:1234
+        - 9999:9999
+        - 40000:40000
+        - 41000:41000
+        - 42000:42000
+        - 43000:43000
       options: --entrypoint /bin/bash
 
     steps:
@@ -96,40 +103,36 @@ jobs:
           name: app-debug-nanox
           path: bin-nanox
 
-      # - name: Run speculos in the background
-      #   env:
-      #     SEED: course grief vintage slim tell hospital car maze model style elegant kitchen state purpose matrix gas grid enable frown road goddess glove canyon key
-      #   run: |
-      #     /speculos/speculos.py --model nanos --display headless --automation file:emulator_automation.json --seed "${SEED}" bin-nanos/app.elf 2>speculos.log &
-      #     echo $! >/tmp/speculos.pid
-      #     timeout 10 sh -c 'until nc -z 127.0.0.1 9999; do sleep 1; done'
+      - name: Run speculos in the background
+        env:
+          SEED: course grief vintage slim tell hospital car maze model style elegant kitchen state purpose matrix gas grid enable frown road goddess glove canyon key
+        run: |
+          nohup bash -c "python3 /speculos/speculos.py --apdu-port 9999 --button-port 42000 --automation-port 43000 --model nanos --display headless --automation file:emulator_automation.json --seed '${SEED}' bin-nanos/app.elf" > speculos.log 2<&1 &
 
-      # - name: Run speculos tests against the Nano S app
-      #   env:
-      #     LEDGER_PROXY_ADDRESS: 127.0.0.1
-      #     LEDGER_PROXY_PORT: 9999
-      #   run: |
-      #     cp utils/mina_ledger_wallet.py tests/mina_ledger_wallet.py
-      #     python3 tests/unit_tests.py
+      - name: Run speculos tests against the Nano S app
+        env:
+          LEDGER_PROXY_ADDRESS: 127.0.0.1
+          LEDGER_PROXY_PORT: 9999
+        run: |
+          cp utils/mina_ledger_wallet.py tests/mina_ledger_wallet.py
+          python3 tests/unit_tests.py
 
-      # - name: Kill speculos
-      #   run: |
-      #     kill -9 $(cat /tmp/speculos.pid)
+      - name: Kill speculos
+        run: |
+          kill -9 $(pgrep python3) $(pgrep qemu)
 
-      # - name: Upload speculos log
-      #   uses: actions/upload-artifact@v2
-      #   if: failure()
-      #   with:
-      #     name: speculos-nanos-log
-      #     path: speculos.log
+      - name: Upload speculos log
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: speculos-nanos-log
+          path: speculos.log
 
       - name: Run speculos in the background
         env:
           SEED: course grief vintage slim tell hospital car maze model style elegant kitchen state purpose matrix gas grid enable frown road goddess glove canyon key
         run: |
-          /speculos/speculos.py --log-level apdu:DEBUG --log-level bagl:DEBUG --log-level button:DEBUG --log-level display:DEBUG --log-level finger:DEBUG --log-level seproxyhal:DEBUG --log-level speculos-client:DEBUG --log-level usb:DEBUG --log-level speculos:DEBUG --log-level automation:DEBUG --model nanox --display headless --automation file:emulator_automation.json --seed "${SEED}" bin-nanox/app.elf &
-          echo $! >/tmp/speculos.pid
-          timeout 10 sh -c 'until nc -z 127.0.0.1 9999; do echo 'hi' && sleep 1; done'
+          nohup bash -c "python3 /speculos/speculos.py --apdu-port 9999 --button-port 42000 --automation-port 43000 --model nanox --display headless --automation file:emulator_automation.json --seed '${SEED}' bin-nanox/app.elf" > speculos.log 2<&1 &
 
       - name: Run tests against the Nano X app
         env:
@@ -137,9 +140,6 @@ jobs:
           LEDGER_PROXY_PORT: 9999
         run: |
           cp utils/mina_ledger_wallet.py tests/mina_ledger_wallet.py
-          echo $LEDGER_PROXY_ADDRESS
-          echo $LEDGER_PROXY_PORT
-          echo $NO_EMULATOR
           python3 tests/unit_tests.py
 
       - name: Upload speculos log
