@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "os.h"
+#include "cx.h"
 
 #ifdef LEDGER_BUILD
     #include <os.h>
@@ -17,7 +19,7 @@
 #define SCALAR_OFFSET  2     // Scalars only use 254 bits
 
 #define SIGNATURE_LEN    129 // as strings,
-#define MINA_ADDRESS_LEN 56  // includes null-bytes
+#define MINA_ADDRESS_LEN 47  // includes null-bytes
 
 #define COIN 1000000000ULL
 
@@ -79,3 +81,4 @@ bool generate_address(char *address, const size_t len, const Affine *pub_key);
 bool validate_address(const char *address);
 
 bool sign(Signature *sig, const Keypair *kp, const ROInput *input, const uint8_t network_id);
+void getEthAddressFromKey(cx_ecfp_public_key_t *publicKey, uint8_t *out, cx_sha3_t *sha3Context);

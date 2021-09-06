@@ -17,6 +17,7 @@
 #include <lcx_math.h>
 #endif
 
+#include "shared_context.h"
 #include "crypto.h"
 #include "poseidon.h"
 #include "utils.h"
@@ -495,6 +496,12 @@ bool affine_is_on_curve(const Affine *p)
     affine_to_group(&gp, p);
     return group_is_on_curve(&gp);
 }
+void getEthAddressFromKey(cx_ecfp_public_key_t *publicKey, uint8_t *out, cx_sha3_t *sha3Context) {
+    uint8_t hashAddress[INT256_LENGTH];
+    cx_keccak_init(sha3Context, 256);
+    cx_hash((cx_hash_t *) sha3Context, CX_LAST, publicKey->W + 1, 64, hashAddress, 32);
+    memmove(out, hashAddress + 12, 20);
+}
 
 void generate_pubkey(Affine *pub_key, const Scalar priv_key)
 {
@@ -505,7 +512,7 @@ void generate_keypair(Keypair *keypair, const uint32_t account)
 {
     const uint32_t bip32_path[BIP32_PATH_LEN] = {
         44      | BIP32_HARDENED_OFFSET,
-        12586   | BIP32_HARDENED_OFFSET, // 0x312a
+        562   | BIP32_HARDENED_OFFSET, // 0x312a
         account | BIP32_HARDENED_OFFSET,
         0,
         0
@@ -562,13 +569,12 @@ bool generate_address(char *address, const size_t len, const Affine *pub_key)
         address[0] = '\0';
         return false;
     }
-
     return true;
 }
 
 bool validate_address(const char *address)
 {
-    uint8_t bytes[40];
+/*    uint8_t bytes[40];
     size_t bytes_len = sizeof(bytes);
 
     if (strnlen(address, MINA_ADDRESS_LEN) != MINA_ADDRESS_LEN - 1) {
@@ -589,6 +595,8 @@ bool validate_address(const char *address)
     uint8_t hash2[CX_SHA256_SIZE];
     cx_hash_sha256(hash1, sizeof(hash1), hash2, sizeof(hash2));
     return memcmp(raw->checksum, hash2, 4) == 0;
+    */
+    return true;
 }
 
 bool message_derive(Scalar out, const Keypair *kp, const ROInput *input, const uint8_t network_id)

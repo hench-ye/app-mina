@@ -286,3 +286,29 @@ void read_public_key_compressed(Compressed *out, const char *address)
     }
     out->is_odd = (bool)raw->payload[34];
 }
+const char kHexAlphabet[] = "0123456789abcdef";
+const char kHexLookup[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7,  8,  9,  0,  0,  0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0, 0, 0,
+                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 11, 12, 13, 14, 15 };
+
+uint32_t HexEncode(const uint8_t* in, uint32_t len, uint8_t* out) {
+    int i= 0, j = 0;
+    for (; i != len; ++i) {
+        out[j++] = kHexAlphabet[in[i] / 16];
+        out[j++] = kHexAlphabet[in[i] % 16];
+    }
+    return j;
+}
+
+uint32_t HexDecode(const uint8_t* in, uint32_t len, uint8_t* out) {
+    if (len % 2) return 0;
+
+    int i=0, j=0;
+    for (; i != len / 2; ++i) {
+        out[i] = (kHexLookup[in[j++]] << 4);
+        out[i] |= kHexLookup[in[j++]];
+    }
+    return (uint32_t)i;
+}                            

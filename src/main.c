@@ -14,7 +14,7 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 ********************************************************************************/
-
+#include "shared_context.h"
 #include "utils.h"
 #include "get_address.h"
 #include "sign_tx.h"
@@ -36,6 +36,9 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define OFFSET_P2 3
 #define OFFSET_LC 4
 #define OFFSET_CDATA 5
+
+cx_sha3_t global_sha3;
+//tmpCtx_t tmpCtx;
 
 void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx,
                 volatile unsigned int length) {
